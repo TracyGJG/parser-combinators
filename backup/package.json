@@ -1,0 +1,40 @@
+{
+  "name": "parser-combinators",
+  "version": "1.0.0",
+  "description": "An example of combinators applied to processing a JSON string",
+  "main": "json-parser.js",
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "watch": "node --test --watch",
+    "coverage": "c8 node --test",
+    "coverage:ui": "http-server ./coverage -o lcov-report/"
+  },
+  "keywords": [
+    "JSON",
+    "parser",
+    "combinators"
+  ],
+  "author": "TGJ Gilmore",
+  "license": "ISC",
+  "homepage": "https://github.com/TracyGJG/parser-combinators#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TracyGJG/parser-combinators.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TracyGJG/parser-combinators/issues"
+  },
+  "devDependencies": {
+    "c8": "^10.1.3",
+    "http-server": "^14.1.1"
+  },
+  "c8": {
+    "exclude": [
+      "**/*.test.*"
+    ],
+    "reporter": [
+      "lcov"
+    ]
+  }
+}
