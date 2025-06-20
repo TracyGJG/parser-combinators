@@ -1,0 +1,4 @@
+{
+  "valid": ["hello-world"],
+  "invalid": [["bad-array", "bad array"]]
+}
