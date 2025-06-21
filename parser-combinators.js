@@ -1,7 +1,7 @@
 export function Run(parser) {
-  return (data) =>
+  return (srcData) =>
     parser({
-      data,
+      data: srcData.trim(),
       index: 0,
       error: '',
     });
@@ -14,9 +14,10 @@ export function Sequence(...parsers) {
     while (
       !newState.error &&
       !endOfInput(newState) &&
-      parserIndex <= parser.length
+      parserIndex < parsers.length
     ) {
-      newState = parsers[parserIndex++](newState);
+      newState = parsers[parserIndex](newState);
+      parserIndex++;
     }
     return newState;
   };
@@ -29,7 +30,7 @@ export function Repeat(parser, options = {}) {
     let newState = state;
     let occurrence = 0;
 
-    while (!newState.error && occurrence <= max) {
+    while (!newState.error && !endOfInput(newState) && occurrence <= max) {
       newState = parser(newState);
       occurrence++;
     }
@@ -44,13 +45,18 @@ export function Optional(parser) {
   return (state) => (state.error ? state : { ...parser(state), error: '' });
 }
 
-// function parse(parser) {
-//   return (state) => (state.error ? state : parser(state));
-// }
+export function endOfInput(state) {
+  return state.index >= state.data.length;
+}
 
-function endOfInput(state, marker = '') {
-  return (
-    (marker && state.data.slice(state.index) === marker) ||
-    state.index >= state.data.length
-  );
+export function advance(state, step = 1) {
+  return { ...state, index: state.index + step };
+}
+
+export function error(state, message = '') {
+  return { ...state, error: `Error at ${state.index}: ${message}` };
+}
+
+export function nextChar(state) {
+  return endOfInput(state) ? null : state.data.at(state.index);
 }

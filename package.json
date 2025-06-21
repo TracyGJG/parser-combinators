@@ -1,11 +1,12 @@
 {
   "name": "parser-combinators",
   "version": "1.0.0",
-  "description": "An example of combinators applied to processing a JSON string",
+  "description": "An example of parser combinators applied to validating a JSON string",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "test": "node tests.js"
   },
   "keywords": [
     "JSON",
