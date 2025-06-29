@@ -7,48 +7,7 @@ import {
   error,
   endOfInput,
   nextChar,
-} from './parser-combinators.js';
-
-export const isChars =
-  (chars, exclude = false) =>
-  ({ data, index }) => {
-    const blnCharFound = chars.includes(data.at(index));
-    return exclude ? !blnCharFound : blnCharFound;
-  };
-
-export const isWhitespace = isChars(' \b\n\r\t');
-const isDigit_1_9 = isChars('123456789');
-const isDigit_0_9 = isChars('0123456789');
-export const isHexadecimal = (data) =>
-  [...data].every((_, index) =>
-    isChars('0123456789ABCDEFabcdef')({ data, index })
-  );
-const isAlphanumeric = isChars(
-  '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-);
-export const isEscapeChar = isChars('"\\\b\f\n\r\t');
-export const isUnicodeChar = ({ data, index }) =>
-  isString('\\u')({ data, index }) &&
-  isHexadecimal(data.slice(index + 2, index + 6));
-export const isString = (pattern, caseSensitive = true) => {
-  const convert = caseSensitive ? (_) => _ : (_) => _.toLowerCase();
-  return ({ data, index }) => {
-    const subject = data.slice(index, index + pattern.length);
-    return convert(subject) === convert(pattern);
-  };
-};
-const isNonPrintable = ({ data, index }) => {
-  const charCode = data.charCodeAt(index);
-  return charCode === 127 || charCode < 32;
-};
-export const isValidStringChar = ({ data, index }) => {
-  const stringChar = data.at(index);
-  return (
-    !('"\\'.includes(stringChar) || isNonPrintable({ data, index })) ||
-    isEscapeChar({ data, index }) ||
-    isUnicodeChar({ data, index })
-  );
-};
+} from './combinators.js';
 
 const jsonParser = Sequence(parseChar('"'), parseString, parseChar('"'));
 
