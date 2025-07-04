@@ -9,7 +9,7 @@ import {
   isEscapeChar,
   isHexadecimal,
   isNonPrintable,
-  isUnicodeChar,
+  // isUnicodeChar,
   isWhitespace,
 } from './predicates.js';
 
@@ -119,26 +119,26 @@ describe('Predicates', () => {
     });
   });
 
-  describe('isUnicodeChar', () => {
-    it('can validate a unicode character with digits', () => {
-      assert.equal(isUnicodeChar('u0123'), true);
-    });
-    it('can validate a as an escaped character', () => {
-      assert.equal(isUnicodeChar('uabcd'), true);
-    });
-    it('can validate a unicode character with uppercase letters', () => {
-      assert.equal(isUnicodeChar('uCDEF'), true);
-    });
-    it('can invalidate a unicode character with the wrong escape', () => {
-      assert.equal(isUnicodeChar('UCDEF'), false);
-    });
-    it('can invalidate a unicode character with the incorrect hex code (length)', () => {
-      assert.equal(isUnicodeChar('uABC'), false);
-    });
-    it('can invalidate a unicode character with the incorrect hex characters', () => {
-      assert.equal(isUnicodeChar('uGHIJ'), false);
-    });
-  });
+  // describe('isUnicodeChar', () => {
+  //   it('can validate a unicode character with digits', () => {
+  //     assert.equal(isUnicodeChar('u0123'), true);
+  //   });
+  //   it('can validate a as an escaped character', () => {
+  //     assert.equal(isUnicodeChar('uabcd'), true);
+  //   });
+  //   it('can validate a unicode character with uppercase letters', () => {
+  //     assert.equal(isUnicodeChar('uCDEF'), true);
+  //   });
+  //   it('can invalidate a unicode character with the wrong escape', () => {
+  //     assert.equal(isUnicodeChar('UCDEF'), false);
+  //   });
+  //   it('can invalidate a unicode character with the incorrect hex code (length)', () => {
+  //     assert.equal(isUnicodeChar('uABC'), false);
+  //   });
+  //   it('can invalidate a unicode character with the incorrect hex characters', () => {
+  //     assert.equal(isUnicodeChar('uGHIJ'), false);
+  //   });
+  // });
 
   describe('isWhitespace', () => {
     it('can validate a space character as whitespace', () => {

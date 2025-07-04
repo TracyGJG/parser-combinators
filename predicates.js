@@ -17,8 +17,9 @@ export const isNonPrintable = (data) => {
   const charCode = data.charCodeAt(0);
   return charCode === 127 || charCode < 32;
 };
-export const isUnicodeChar = (data) =>
-  data.length >= 5 &&
-  isChars('u')(data.at(0)) &&
-  [...data.slice(1, 5)].every(isHexadecimal);
 export const isWhitespace = isChars(' \b\n\r\t');
+
+// export const isUnicodeChar = (data) =>
+//   data.length >= 5 &&
+//   isChars('u')(data.at(0)) &&
+//   [...data.slice(1, 5)].every(isHexadecimal);
