@@ -1,7 +1,14 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 
-import { advance, endOfInput, error, nextChar, parser } from './utils.js';
+import {
+  advance,
+  endOfInput,
+  error,
+  nextChar,
+  notCandidate,
+  parser,
+} from './utils.js';
 
 describe('Utils', () => {
   describe('advance', () => {
@@ -25,13 +32,13 @@ describe('Utils', () => {
   });
 
   describe('error', () => {
-    it('can confirm when the index exceeds the data prepare an error message', () => {
+    it('can return when there is no error', () => {
       assert.equal(
         error({ data: 'Hello, World!', index: 13, error: '' }).error,
         ''
       );
     });
-    it('can confirm when the index exceeds the data prepare an error message 2', () => {
+    it('can return when there is a reportable error', () => {
       assert.equal(
         error(
           { data: 'Hello, World!', index: 13, error: '' },
@@ -40,10 +47,10 @@ describe('Utils', () => {
         'Error at 13: Data exhausted.'
       );
     });
-    it('can confirm when the index exceeds the data prepare an error message 2', () => {
+    it('can return when there is a non-reportable error', () => {
       assert.equal(
         error({ data: 'Hello, World!', index: 13, error: '' }, '_').error,
-        'Error at 13: Data .'
+        '_'
       );
     });
   });
@@ -55,6 +62,15 @@ describe('Utils', () => {
 
     it('can return an empty string when data is exhausted', () => {
       assert.equal(nextChar({ data: 'Hello, World!', index: 13 }), '');
+    });
+  });
+
+  describe('notCandidate', () => {
+    it('can return when unchanged', () => {
+      assert.equal(notCandidate({ index: 5 }, { index: 5 }), false);
+    });
+    it('can return when progressed', () => {
+      assert.equal(notCandidate({ index: 5 }, { index: 6 }), true);
     });
   });
 

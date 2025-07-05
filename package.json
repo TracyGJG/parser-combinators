@@ -2,7 +2,7 @@
   "name": "parser-combinators",
   "version": "1.0.0",
   "description": "An example of parser combinators applied to validating a JSON string",
-  "main": "index.js",
+  "main": "parsers.js",
   "type": "module",
   "scripts": {
     "test": "node --test",
@@ -24,10 +24,11 @@
   },
   "c8": {
     "exclude": [
-      "**/*.test.*"
+      "./*.test.*"
     ],
     "reporter": [
-      "lcov"
+      "lcov",
+      "html"
     ]
   }
 }

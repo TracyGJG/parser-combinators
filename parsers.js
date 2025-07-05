@@ -1,4 +1,11 @@
-import { advance, endOfInput, error, nextChar, parser } from './utils.js';
+import {
+  advance,
+  endOfInput,
+  error,
+  nextChar,
+  notCandidate,
+  parser,
+} from './utils.js';
 
 import {
   isAlphanumeric,
@@ -11,21 +18,22 @@ import {
   isWhitespace,
 } from './predicates.js';
 
-// export function parseString(state) {
-//   const parserQuotation = parser(isChars(`"`));
-//   let newState = state;
+export function parseString(state) {
+  const parserQuotation = parser(isChars(`"`));
+  let newState = parserQuotation(newState);
 
-//   if (newState.error || endOfInput(newState)) return newState;
+  if (notCandidate(state, newState)) return state;
 
-//   newState = parserQuotation(newState);
-//   if (newState.error || endOfInput(newState)) return state;
+  // while (newState.error || endOfInput(newState)) return state;
 
-//   return newState;
-// }
+  newState = parserQuotation(newState);
+
+  return newState;
+}
 
 export function parseWhitespace(state) {
   let newState = state;
-  const _parser = parser(isWhitespace, '');
+  const _parser = parser(isWhitespace);
 
   while (!newState.error && !endOfInput(newState)) {
     newState = _parser(newState);

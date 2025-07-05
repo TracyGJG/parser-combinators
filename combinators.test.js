@@ -5,7 +5,7 @@ import {
   parseExponent,
   parseFraction,
   parseInteger,
-  parseWhitespace,
+  // parseWhitespace,
 } from './combinators.js';
 
 describe('combinators', () => {
@@ -106,26 +106,26 @@ describe('combinators', () => {
     });
   });
 
-  describe('parseWhitespace', () => {
-    it('can pass at the end of the input', () => {
-      const state = { data: '', index: 0, error: '' };
-      const { index } = parseWhitespace(state);
-      assert.equal(index, 0);
-    });
-    it('can process leading whitespace', () => {
-      const state = { data: ' \n\r\t_', index: 0, error: '' };
-      const { index } = parseWhitespace(state);
-      assert.equal(index, 4);
-    });
-    it('can process trailing whitespace', () => {
-      const state = { data: '_ \n\r\t', index: 1, error: '' };
-      const { index } = parseWhitespace(state);
-      assert.equal(index, 5);
-    });
-    it('can pass whitespace post non-whitespace', () => {
-      const state = { data: '_ \n\r\t', index: 0, error: '' };
-      const { index } = parseWhitespace(state);
-      assert.equal(index, 0);
-    });
-  });
+  // describe('parseWhitespace', () => {
+  //   it('can pass at the end of the input', () => {
+  //     const state = { data: '', index: 0, error: '' };
+  //     const { index } = parseWhitespace(state);
+  //     assert.equal(index, 0);
+  //   });
+  //   it('can process leading whitespace', () => {
+  //     const state = { data: ' \n\r\t_', index: 0, error: '' };
+  //     const { index } = parseWhitespace(state);
+  //     assert.equal(index, 4);
+  //   });
+  //   it('can process trailing whitespace', () => {
+  //     const state = { data: '_ \n\r\t', index: 1, error: '' };
+  //     const { index } = parseWhitespace(state);
+  //     assert.equal(index, 5);
+  //   });
+  //   it('can pass whitespace post non-whitespace', () => {
+  //     const state = { data: '_ \n\r\t', index: 0, error: '' };
+  //     const { index } = parseWhitespace(state);
+  //     assert.equal(index, 0);
+  //   });
+  // });
 });

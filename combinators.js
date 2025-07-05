@@ -5,9 +5,11 @@ import {
   isDigit_1_9,
   isEscapeChar,
   isNonPrintable,
-  isUnicodeChar,
+  // isUnicodeChar,
   isWhitespace,
 } from './predicates.js';
+
+import { advance, endOfInput, error, nextChar, parser } from './utils.js';
 
 // export function Run(parser) {
 //   return (srcData) =>
@@ -60,26 +62,6 @@ import {
 //   !('"\\'.includes(data.at(0)) || isNonPrintable(data)) ||
 //   isEscapeChar(data) ||
 //   isUnicodeChar(data);
-
-export function endOfInput(state, len = 0) {
-  return state.index + len >= state.data.length;
-}
-
-export function advance(state, step = 1) {
-  state.index = state.index + step;
-  return error(state);
-}
-
-export function error(state, message = '') {
-  return {
-    ...state,
-    error: message ? `Error at ${state.index}: ${message}` : '',
-  };
-}
-
-export function nextChar(state) {
-  return endOfInput(state) ? '' : state.data.at(state.index);
-}
 
 // ====
 
@@ -165,14 +147,14 @@ export function parseExponent(state) {
   return state;
 }
 
-export function parseWhitespace(state) {
-  let newState = state;
-  while (
-    !newState.error &&
-    !endOfInput(newState) &&
-    isWhitespace(nextChar(newState))
-  ) {
-    newState = advance(newState);
-  }
-  return newState;
-}
+// export function parseWhitespace(state) {
+//   let newState = state;
+//   while (
+//     !newState.error &&
+//     !endOfInput(newState) &&
+//     isWhitespace(nextChar(newState))
+//   ) {
+//     newState = advance(newState);
+//   }
+//   return newState;
+// }
