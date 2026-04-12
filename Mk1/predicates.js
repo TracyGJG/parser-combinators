@@ -9,17 +9,14 @@ export const isAlphanumeric = isChars(
 );
 export const isDigit_0_9 = isChars(DIGITS);
 export const isDigit_1_9 = isChars(`${DIGITS.slice(1)}`);
-export const isEscapeChar = isChars('"/\\\b\f\n\r\t');
+export const isEscapeChar = isChars('"/\\bfnrt');
 export const isHexadecimal = isChars(
   `${DIGITS}${HEXDIGITS.toLowerCase()}${HEXDIGITS}`
 );
-export const isNonPrintable = (data) => {
+const isNonPrintable = (data) => {
   const charCode = data.charCodeAt(0);
   return charCode === 127 || charCode < 32;
 };
+export const isPrintable = (data) =>
+  !(isNonPrintable(data) || isChars('\\')(data) || isChars('"')(data));
 export const isWhitespace = isChars(' \b\n\r\t');
-
-// export const isUnicodeChar = (data) =>
-//   data.length >= 5 &&
-//   isChars('u')(data.at(0)) &&
-//   [...data.slice(1, 5)].every(isHexadecimal);

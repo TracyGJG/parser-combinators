@@ -6,32 +6,25 @@ There are six significant structures, any combination of which can comprise a va
 
 - Whitespace: which is largely dismissed.
 - Number: which is a complicated little beasty when fractional and exponential factors are included.
-- String: is delimited with double-quotes `"` and can be a combination of printable and escaped characters.
+- String: is delimited with double-quotes and can be a combination of printable and escaped characters.
 - Value: is potentially topped and tailed with whitespace around, Numbers, Strings, Objects, Arrays (these two to be described soon) and static values of `true`, `false` and `null`.
 - Arrays: are structures for containing zero to many, potentially duplicate Values (as defined above), which means they can be nested. They are delimited in square brackets `[]` and can contain whitespace or values with each value separated with a comma. Unlike in JS code, trailing commas are not supported and invalid.
 - Objects: are collections of any number of unique key (string), Value pairs. Similar to Arrays, they can also be nested. Objects are delimited with curly braces `{}` with each key-value pair separated with a comma. Again, trailing commas are invalid. All keys are double-quoted string separated from the value with a colon and optional whitespace.
 
   In addition to parsing the above structures there are also some common pattens we can parse, which includes:
+
   - Leading digits (1-9)
   - Digits (0-9)
   - Non-printable charactes (tabs, line-feed, carriage-return and spaces).
-  - Printable characters (ASCII values excluding `"`, `\` and control codepoint in the decimal range 0 to 32 and 127).
-  - Escape sequences (`\\`, `\"`, `\/`, `\b`, `\f`, `\n`, `\r`, `\t`).
-  - Unicode sequences (`\u####`, where # is a hexadecimal digit).
+  - Printable characters (ASCII values excluding ", \ and control codepoint in the decimal range 0 to 32 and 127).
+  - Escape sequences (\\\\, \", \\/, \b, \f, \n, \r, \t).
+  - Unicode sequences (\u####, where # is a hexadecimal digit).
 
 The vast potential combination of the above, especially, when including nested arrays and object, makes linear processing less practical and assuming a tree structure is more efficient.
 
 "In Computer Science trees grow upside down", with the root at the top, leading to a trunck with branches that terminate in leaves (at the bottom - of course, where else would they be?). The analogy breaks down when you consider the possibility there could be multiple truncks but (between friends) let's not worry ourselves too much about those.
 
 For many JS developers the tendency is to use arrow functions in preference to their more tradition counterparts. However, we need to resolve some cyclic references which requires the construction of a symbol lookup table the JS engine will use to validate functions during their first parsing/execution. Arrow functions cannot be referenced before they have been initialised reducign their utility.
-
-```mermaid
-flowchart LR
-  Parsers --> Utils
-  Parsers --> Combinators
-  Parsers --> Predicates
-  Utils --> Predicates
-```
 
 ## I promise not to use RegExp
 
@@ -50,9 +43,9 @@ We will be confirming if the supplied test cases (JSON files) contain valid JSON
 - `Predicate` is a function that always returns a Boolean result (true or false) for a given input.
 - `Parser`, a function that attempts to match the input against a predefined pattern in order to attribute a token and therefore semantic meaning. When the input is not recognised an error will be produced it the pattern was expected or nothing may be reported if the pattern is optional.
 - `Parser Combinator` accepts one or more parsers as input and produces as new parser. Combinators are used to construct compound parsers to capture the complexity of inter-dependent parsers. For instance when one parser is only valid when followed by another. This enables the basic parsers to remain simple yet have the ability to parse complicates input. Examples include (informal):
-  - `Sequence` operation than takes in a list of parsers and returns a function that accepts a state object containing the input text. The function passes the input to each in turn until either the last is performed or an error occurs.
-  - `Preference` operation than takes in a list of parsers and returns a function that accepts a state object containing the input text. The function passes the input to each in turn until either the last is performed or a parser passes.
-  - `Occurance` is supplied with a single parser along with optional minimum and maximum occurance limits. It return a function that accepts a state object and executes the parser serveral times until either the input is excausted, the parser fails or the maximum limit is reached, if given.
+  - `Sequence` operation than takes in a list of parsers and passes the input to each in turn until either the last is performed or an error occurs.
+  - `Repeat` is supplied with a single parser along with a minimum, and possibly a maximum, number of occurances. The input data is presented to the parse for each occurance or until an error is detected/reported.
+  - `Run` is the function used to perform the parsing. It is first passed the collected parsers, at which point it will prepare the execution context (state, more on this in a moment) and return a new function (a partial application). This means the same parser can be used for numerous input data sets.
 
 ### Predicates
 
@@ -61,11 +54,13 @@ Predicate functions (for our purpose) take in a single character and return a Bo
 - **Alphanumeric**: Letters `A-Z` (in upper and lower case) plus digitis `0-9`.
 - **Digits**: Characters 0-9. There two forms used for JSON parsing `0-9` and `1-9`.
 - **Hexadecimal**: tests for character in the following ranges:
+
   - numeric `0-9`
   - lowercase letters `a-f`
   - uppercase letters `A-F`
 
 - **EscapeChar**: Special character that can be included within a string value when preceeded by a back-slash (revese solidus). This includes:
+
   - quotation mark `\"`
   - revese solidus `\\`
   - solidus `\/`
@@ -77,17 +72,20 @@ Predicate functions (for our purpose) take in a single character and return a Bo
   - unicode (see the unicode character predicate)
 
 - **NonPrintable**: Characters that cannot be included in a string value. These include:
+
   - Characters with an ASCII code below 32 (Control Characaters excluding space).
   - Character with the ASCII code of 127 (Delete character).
   - String delimeter/ Quotation mark `"`.
   - Escape character `\`.
 
 - **UnicodeChar**: This predicate function is slightly different from the others in that is expects a string of at least 6 characaters, as follows, in order.
+
   - back-slash `\`
   - letter `u` (always lowercase)
   - 4 hexadecimal characters (see the isHexadecimal helper function)
 
 - **Whitespace**: Padding characters that are ignored by the JSON parsing process.
+
   - space ` `
   - backspace `\b`
   - linefeed `\n`
@@ -108,9 +106,9 @@ The function returned by calling `Run` is the only one that is directly supplied
 
 ```js
 {
-    text, // source data to be parsed.
+    data, // source data to be parsed.
     index: 0, // position of processing.
-    isMatched: '', // error report when detected.
+    error: '', // error report when detected.
 }
 ```
 

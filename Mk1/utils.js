@@ -1,4 +1,8 @@
-export const advance = (state) => ({ ...state, index: state.index + 1 });
+export const advance = (state) => ({
+  ...state,
+  index: state.index + 1,
+  error: '',
+});
 
 export const endOfInput = (state) => state.index >= state.data.length;
 
@@ -15,8 +19,8 @@ export const parser =
   (state) =>
     endOfInput(state) || state.error
       ? state
-      : predicate(state.data.at(state.index))
+      : predicate(nextChar(state))
       ? advance(state)
       : error(state, message);
 
-export const notCandidate = ({ index: i1 }, { index: i2 }) => i1 !== i2;
+export const notCandidate = ({ index: i1 }, { index: i2 }) => i1 === i2;

@@ -1,0 +1,76 @@
+Value
+    EOT (1)         ->  END
+    EOT             ->  ERROR
+    [\s\l\n\t]      ->  Whitespace
+    ["] (0)         ->  String (+)
+/    [-0] (0)        ->  Number (+)
+/    [\[] (0)        ->  Array (+)
+/    [{] (0)         ->  Object (+)
+    true (0)        ->  Value (+)
+    false (0)       ->  Value (+)
+    null (0)        ->  Value (+)
+
+Whitespace
+    EOT (1)         ->  END
+    EOT             ->  ERROR
+    [\s\l\n\t]      ->  Whitespace
+    [^\s\l\n\t]     ->  BACK
+
+String
+    EOT (1)         ->  END
+    EOT             ->  ERROR
+    [\s\l\n\t]      ->  Whitespace
+    ["]            ->  BACK
+
+
+
+
+
+Array
+    EOT (1)         ->  END
+    EOT             ->  ERROR
+    [\s\l\n\t]      ->  Whitespace
+    [\]]            ->  BACK
+    [^\s\l\n\t]     ->  Value
+
+-----
+
+
+
+VALUE ::=   WHITESPACES + STRING + WHITESPACES
+            WHITESPACES + NUMBER + WHITESPACES
+            WHITESPACES + OBJECT + WHITESPACES
+            WHITESPACES + ARRAY + WHITESPACES
+            WHITESPACES + TRUE + WHITESPACES
+            WHITESPACES + FALSE + WHITESPACES
+            WHITESPACES + NULL + WHITESPACES
+
+WHITESPACES ::=  WHITESPACE*
+
+WHITESPACE ::=  '\s'
+                '\n'
+                '\r'
+                '\t'
+
+
+/////////////////////
+
+ANY = 0+
+    Not found:  No ERROR
+    Found:      Update state
+
+ANYONE = 1+
+    None found:  ERROR
+    Found:      Update state
+
+MANDATORY = 1
+    Not found:  ERROR
+    Found:      Update state
+
+1)  Capture current index
+2)  Test predicate
+    True => Increase index
+3)  (index - capture >= min)
+    False => Error & exit
+4)  Repeat 2
+

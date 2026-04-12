@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Harness</title>
+  </head>
+  <body>
+    <script type="module">
+      import {
+        matchText,
+        isArrayStart,
+        isArrayEnd,
+        isArraySeparator,
+      } from '../src/predicates.js';
+      import { parser } from '../src/utils.js';
+      import { sequence, preference, occurance } from '../src/combinators.js';
+      import { string } from '../src/parsers.js';
+
+      const arrSep = (state) => {
+        const result = parser(isArraySeparator)(state);
+        return result;
+      };
+      const additionalValuesOcc = (state) => {
+        return sequence(arrSep, value)(state);
+      };
+      const additionalValues = occurance(additionalValuesOcc);
+
+      console.table(
+        [
+          // '[]',
+          // '[""]',
+          // '"test"',
+          // ' "test" ',
+          // '["test"]',
+          // '["\\uABCD\n"]',
+          // '["test","test"]',
+          // '["test"," test"]',
+          // '["test","test" ]',
+          // '["test","test" ] ',
+          '["test", "test"]',
+          '["test", "test" ]',
+          '["test", "test"] ',
+          '["test", "test" ] ',
+        ].map((text) => {
+          const state = { text, index: 0, isMatched: true };
+          const result = value(state);
+          return { result, ...state };
+        }),
+      );
+
+      function testArray(state) {
+        return sequence(
+          parser(isArrayStart),
+          occurance(sequence(value, additionalValues), {
+            max: 1,
+          }),
+          parser(isArrayEnd),
+          occurance(
+            parser((text) => {
+              console.log(`text: "${text}"`);
+              return matchText(' ')(text);
+            }),
+          ),
+        )(state);
+      }
+
+      function value(state) {
+        return preference(testArray, string)(state);
+      }
+    </script>
+  </body>
+</html>

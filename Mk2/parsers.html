@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Parsers</title>
+  </head>
+  <body>
+    <script type="module">
+      import { isNumber, isString, isWhitespace } from '../parsers.js';
+
+      const testIsString = true;
+      if (testIsString) {
+        test(isString, { input: '""', error: null, index: 0 });
+        test(isString, { input: '"""', error: null, index: 0 });
+        test(isString, { input: '"\\""', error: null, index: 0 });
+        test(isString, { input: '"\\t"', error: null, index: 0 });
+        test(isString, { input: '"_"', error: null, index: 0 });
+        test(isString, { input: '"Testing"', error: null, index: 0 });
+        test(isString, { input: '"\\"', error: null, index: 0 });
+        test(isString, { input: '"\u0042"', error: null, index: 0 });
+        test(isString, { input: '"', error: null, index: 0 });
+      }
+
+      const testIsWhitespace = true;
+      if (testIsWhitespace) {
+        test(isWhitespace, { input: '', error: null, index: 0 });
+        test(isWhitespace, { input: ' ', error: null, index: 0 });
+        test(isWhitespace, { input: '\n', error: null, index: 0 });
+        test(isWhitespace, { input: '\r', error: null, index: 0 });
+        test(isWhitespace, { input: '\t', error: null, index: 0 });
+        test(isWhitespace, { input: '  ', error: null, index: 0 });
+        test(isWhitespace, { input: ' t', error: null, index: 0 });
+        test(isWhitespace, { input: '\tt', error: null, index: 0 });
+        test(isWhitespace, { input: 't', error: null, index: 0 });
+        test(isWhitespace, { input: 'test', error: null, index: 0 });
+      }
+
+      const testIsNumberInteger = true;
+      if (testIsNumberInteger) {
+        test(isNumber, { input: '0', error: null, index: 0 });
+        test(isNumber, { input: '-0', error: null, index: 0 });
+        test(isNumber, { input: '1', error: null, index: 0 });
+        test(isNumber, { input: '-1', error: null, index: 0 });
+        test(isNumber, { input: '123', error: null, index: 0 });
+        test(isNumber, { input: '0123', error: null, index: 0 });
+      }
+
+      const testIsNumberFraction = true;
+      if (testIsNumberFraction) {
+        test(isNumber, { input: '0.0', error: null, index: 0 });
+        test(isNumber, { input: '0.12345', error: null, index: 0 });
+        test(isNumber, { input: '0.1234T5', error: null, index: 0 });
+        test(isNumber, { input: '12.345', error: null, index: 0 });
+        test(isNumber, { input: '-12.345', error: null, index: 0 });
+      }
+
+      const testIsNumberExponent = true;
+      if (testIsNumberExponent) {
+        test(isNumber, { input: '0e1', error: null, index: 0 });
+        test(isNumber, { input: '1E2', error: null, index: 0 });
+        test(isNumber, { input: '-1e+2', error: null, index: 0 });
+        test(isNumber, { input: '-1.2E-3', error: null, index: 0 });
+      }
+
+      function test(psr, sts) {
+        console.log('\n', psr.name, sts.input, sts.input.length);
+        console.log('\t', psr(sts));
+      }
+    </script>
+  </body>
+</html>

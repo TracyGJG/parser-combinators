@@ -1,0 +1,19 @@
+{
+  "noData": "",
+  "onlyWhitespace": " \\n\\r\\t",
+  "emptyString": "\"\"",
+  "emptyArray": "[]",
+  "emptyObject": "{}",
+  "BooleanTrue": "true",
+  "BooleanFalse": "false",
+  "BaseValueNull": "null",
+  "printableStringPlainText": "\"ABC\"",
+  "printableStringWhitespace": "\"\t\n\r\"",
+  "printableStringUnicode": "\"\\uABCD\"",
+  "numberIntegerOnlyZero": "0",
+  "numberIntegerOnlyMinusOne": "-1",
+  "numberIntegerMultiDigit": "123",
+  "numberFraction": "42.666",
+  "numberExponent": "42E+2",
+  "numberComplete": "4.266e1"
+}

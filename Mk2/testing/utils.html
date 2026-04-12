@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Utilities</title>
+  </head>
+  <body>
+    <script type="module">
+      import {
+        isInError,
+        advanceState,
+        nextChar,
+        endOfInput,
+        errorState,
+        Parser,
+      } from '../utils.js';
+
+      false &&
+        (() => {
+          console.log('\n', 'isInError');
+          console.log(
+            '\t',
+            'Not in Error',
+            isInError({
+              input: 'ABC',
+              index: 1,
+              error: null,
+            })
+          );
+          console.log(
+            '\t',
+            'In Error',
+            isInError({
+              input: 'ABC',
+              index: 3,
+              error: 'End of Input',
+            })
+          );
+        })();
+
+      false &&
+        (() => {
+          console.log('\n', 'advanceState');
+
+          console.log(
+            '\t',
+            'Move to next',
+            advanceState({
+              input: 'ABC',
+              index: 1,
+              error: null,
+            })
+          );
+          console.log(
+            '\t',
+            'Stay put when in error',
+            advanceState({
+              input: 'ABC',
+              index: 1,
+              error: 'In error',
+            })
+          );
+          console.log(
+            '\t',
+            'Stay put when exhausted',
+            advanceState({
+              input: 'ABC',
+              index: 3,
+              error: null,
+            })
+          );
+        })();
+
+      false &&
+        (() => {
+          console.log('\n', 'nextChar');
+          console.log(
+            '\t',
+            'Single char (0): A',
+            nextChar({
+              input: 'ABC',
+              index: 0,
+              error: null,
+            })
+          );
+          console.log(
+            '\t',
+            'Two chars (1): BC',
+            nextChar(
+              {
+                input: 'ABC',
+                index: 1,
+                error: null,
+              },
+              2
+            )
+          );
+          console.log(
+            '\t',
+            'Single char (2): C',
+            nextChar({
+              input: 'ABC',
+              index: 2,
+              error: null,
+            })
+          );
+          console.log(
+            '\t',
+            'Two chars (2): error',
+            nextChar(
+              {
+                input: 'ABC',
+                index: 2,
+                error: null,
+              },
+              2
+            )
+          );
+          console.log(
+            '\t',
+            'Single char (1): exhausted',
+            nextChar({
+              input: 'ABC',
+              index: 3,
+              error: null,
+            })
+          );
+        })();
+
+      false &&
+        (() => {
+          console.log('\n', 'endOfInput');
+          console.log(
+            '\t',
+            'endOfInput: false',
+            endOfInput({
+              input: 'ABC',
+              index: 2,
+              error: null,
+            })
+          );
+          console.log(
+            '\t',
+            'endOfInput: true',
+            endOfInput({
+              input: 'ABC',
+              index: 3,
+              error: null,
+            })
+          );
+        })();
+
+      false &&
+        (() => {
+          console.log('\n', 'errorState');
+          console.log(
+            '\t',
+            'errorState: new error',
+            errorState(
+              {
+                input: 'ABC',
+                index: 2,
+                error: null,
+              },
+              'In error'
+            )
+          );
+          console.log(
+            '\t',
+            'errorState: old error',
+            errorState(
+              {
+                input: 'ABC',
+                index: 2,
+                error: 'Already in error',
+              },
+              'In error'
+            )
+          );
+        })();
+
+      false &&
+        (() => {
+          const isA = (_) => _ === 'A';
+          console.log('\n', 'Parser');
+
+          console.log(
+            '\t',
+            'Advanced valid input',
+            Parser(isA)({ index: 0, error: null, input: 'A' })
+          );
+
+          console.log(
+            '\t',
+            'Is in error',
+            Parser(isA)({ index: 0, error: 'In error', input: 'A' })
+          );
+
+          console.log(
+            '\t',
+            'At end of input',
+            Parser(isA)({ index: 1, error: null, input: 'A' })
+          );
+
+          console.log(
+            '\t',
+            'Too short',
+            Parser(isA, 2)({ index: 0, error: null, input: 'A' })
+          );
+        })();
+    </script>
+  </body>
+</html>

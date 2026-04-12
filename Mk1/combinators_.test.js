@@ -6,7 +6,7 @@ import {
   parseFraction,
   parseInteger,
   // parseWhitespace,
-} from './combinators.js';
+} from './combinators_.js';
 
 describe('combinators', () => {
   describe('parseInteger', () => {

@@ -8,8 +8,7 @@ import {
   isDigit_1_9,
   isEscapeChar,
   isHexadecimal,
-  isNonPrintable,
-  // isUnicodeChar,
+  isPrintable,
   isWhitespace,
 } from './predicates.js';
 
@@ -79,19 +78,19 @@ describe('Predicates', () => {
       assert.equal(isEscapeChar('\\'), true);
     });
     it('can validate a backspace an escaped character', () => {
-      assert.equal(isEscapeChar('\b'), true);
+      assert.equal(isEscapeChar('b'), true);
     });
     it('can validate a form feed an escaped character', () => {
-      assert.equal(isEscapeChar('\f'), true);
+      assert.equal(isEscapeChar('f'), true);
     });
     it('can validate a newlinw an escaped character', () => {
-      assert.equal(isEscapeChar('\n'), true);
+      assert.equal(isEscapeChar('n'), true);
     });
     it('can validate a carriage-returnas an escaped character', () => {
-      assert.equal(isEscapeChar('\r'), true);
+      assert.equal(isEscapeChar('r'), true);
     });
     it('can validate a horizontal tab as an escaped character', () => {
-      assert.equal(isEscapeChar('\t'), true);
+      assert.equal(isEscapeChar('t'), true);
     });
   });
 
@@ -110,35 +109,26 @@ describe('Predicates', () => {
     });
   });
 
-  describe('isNonPrintable', () => {
-    it('can invalidate a letter as non-printable', () => {
-      assert.equal(isNonPrintable('b'), false);
+  describe('isPrintable', () => {
+    it('is false for a double-quotes', () => {
+      assert.equal(isPrintable('"'), false);
     });
-    it('can validate backspace as non-printable', () => {
-      assert.equal(isNonPrintable('\b'), true);
+    it('is false for a back-slash', () => {
+      assert.equal(isPrintable('\\'), false);
+    });
+    it('is false for a space character', () => {
+      assert.equal(isPrintable(' '), false);
+    });
+    it('is true for an alphabetic character', () => {
+      assert.equal(isPrintable('A'), true);
+    });
+    it('is false for a control character', () => {
+      assert.equal(isPrintable('\u00A0'), false);
+    });
+    it('is false for a delete character', () => {
+      assert.equal(isPrintable('\u007F'), false);
     });
   });
-
-  // describe('isUnicodeChar', () => {
-  //   it('can validate a unicode character with digits', () => {
-  //     assert.equal(isUnicodeChar('u0123'), true);
-  //   });
-  //   it('can validate a as an escaped character', () => {
-  //     assert.equal(isUnicodeChar('uabcd'), true);
-  //   });
-  //   it('can validate a unicode character with uppercase letters', () => {
-  //     assert.equal(isUnicodeChar('uCDEF'), true);
-  //   });
-  //   it('can invalidate a unicode character with the wrong escape', () => {
-  //     assert.equal(isUnicodeChar('UCDEF'), false);
-  //   });
-  //   it('can invalidate a unicode character with the incorrect hex code (length)', () => {
-  //     assert.equal(isUnicodeChar('uABC'), false);
-  //   });
-  //   it('can invalidate a unicode character with the incorrect hex characters', () => {
-  //     assert.equal(isUnicodeChar('uGHIJ'), false);
-  //   });
-  // });
 
   describe('isWhitespace', () => {
     it('can validate a space character as whitespace', () => {

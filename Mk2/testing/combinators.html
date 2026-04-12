@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Combinators</title>
+  </head>
+  <body>
+    <script type="module">
+      import { Parser } from '../utils.js';
+
+      import { SEQUENCE, CHOICE, MULTIPLE, REQUIRED } from '../combinators.js';
+
+      const isChar =
+        (...chars) =>
+        (char) =>
+          chars.join('').includes(char);
+
+      // REQUIRED
+      false &&
+        (() => {
+          console.log('\n', 'REQUIRED: ABC');
+          console.log(
+            '\t',
+            'Not in Error',
+            REQUIRED(
+              Parser(isChar('ABC'), 3),
+              'Not ABC'
+            )({
+              input: 'ABCABC',
+              index: 0,
+              error: null,
+            })
+          );
+          console.log(
+            '\t',
+            'In Error',
+            REQUIRED(
+              Parser(isChar('ABC'), 3),
+              'Not ABC'
+            )({
+              input: 'ABCABC',
+              index: 2,
+              error: null,
+            })
+          );
+        })();
+
+      // SEQUENCE
+      true &&
+        (() => {
+          console.log('\n', 'SEQUENCE: ABC then DEF');
+          console.log(
+            '\t',
+            'Pass Exact',
+            SEQUENCE(
+              REQUIRED(Parser(isChar('ABC'), 3), 'ABC expected'),
+              REQUIRED(Parser(isChar('DEF'), 3), 'DEF expected')
+            )({
+              input: 'ABCDEF',
+              index: 0,
+              error: null,
+            })
+          );
+          console.log(
+            '\t',
+            'Pass Subset',
+            SEQUENCE(
+              REQUIRED(Parser(isChar('ABC'), 3), 'ABC expected'),
+              REQUIRED(Parser(isChar('DEF'), 3), 'DEF expected')
+            )({
+              input: 'ABCDEFGHI',
+              index: 0,
+              error: null,
+            })
+          );
+          console.log(
+            '\t',
+            'Pass Optional',
+            SEQUENCE(
+              REQUIRED(Parser(isChar('ABC'), 3), 'ABC expected'),
+              Parser(isChar('DEF'), 3)
+            )({
+              input: 'ABCGHI',
+              index: 0,
+              error: null,
+            })
+          );
+          console.log(
+            '\t',
+            'Fail',
+            SEQUENCE(
+              REQUIRED(Parser(isChar('ABC'), 3), 'ABC expected'),
+              REQUIRED(Parser(isChar('DEF'), 3), 'DEF expected')
+            )({
+              input: 'ABCGHI',
+              index: 0,
+              error: null,
+            })
+          );
+        })();
+
+      // CHOICE
+      false &&
+        (() => {
+          console.log('\n', 'CHOICE: ABC or DEF');
+          console.log(
+            '\t',
+            'Pass First',
+            CHOICE(
+              'Choice Error',
+              Parser(isChar('ABC'), 3),
+              Parser(isChar('DEF'), 3)
+            )({
+              input: 'ABCDEF',
+              index: 0,
+              error: null,
+            })
+          );
+          console.log(
+            '\t',
+            'Pass Last',
+            CHOICE(
+              'Choice Error',
+              Parser(isChar('ABC'), 3),
+              Parser(isChar('DEF'), 3)
+            )({
+              input: 'ABCDEF',
+              index: 3,
+              error: null,
+            })
+          );
+          console.log(
+            '\t',
+            'Fail',
+            CHOICE(
+              'Choice Error',
+              Parser(isChar('ABC'), 3),
+              Parser(isChar('DEF'), 3)
+            )({
+              input: 'ABCYYY',
+              index: 3,
+              error: null,
+            })
+          );
+        })();
+
+      // MULTIPLE
+      false &&
+        (() => {
+          console.log('\n', 'MULTIPLE: ABC');
+          console.log(
+            '\t',
+            'Pass None',
+            MULTIPLE(Parser(isChar('ABC'), 3))({
+              input: 'DEFDEFDEF',
+              index: 0,
+              error: null,
+            })
+          );
+          console.log(
+            '\t',
+            'Pass Once',
+            MULTIPLE(Parser(isChar('ABC'), 3))({
+              input: 'ABCDEFDEF',
+              index: 0,
+              error: null,
+            })
+          );
+          console.log(
+            '\t',
+            'Pass Multiple',
+            MULTIPLE(Parser(isChar('ABC'), 3))({
+              input: 'ABCABCABCDEF',
+              index: 3,
+              error: null,
+            })
+          );
+        })();
+    </script>
+  </body>
+</html>
