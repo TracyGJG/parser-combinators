@@ -22,6 +22,8 @@ flowchart LR
 #### Public
 
 - `jsonParser` is the primary parser that takes in a JSON string and returns either a `State` object when valid or `false` when invalid.
+  - Error: Unexpected lack of input
+  - Error: Unexpected end of input
 
 #### Private
 
@@ -30,13 +32,22 @@ All of the following functions expect a `State` object as input, and provide an 
 - `valueParser`: After removing and premilinary whitespace (specifically space characters), this parser updates the `State` object if any of the following parsers match a token: `baseParser`, `stringParser`, `numberParser`, `arrayParser` or `objectParser`.
 - `baseParser`: Matches Boolean values or the Base value `null`.
 - `stringParser`: Matches any number of printable, escaped or unitcode characters delimited by the `"` character.
+  - Error: Missing string terminator
 - `arrayParser`: Matches any number of values delimited by the `[` and `]` characters and separated by the `,` character. Spaces between the delimiters will be retained.
+  - Error: Missing array value
+  - Error: Missing array terminator
 - `objectParser`: Matches any number of `key-value pairs` delimited by the `{` and `}` characters and separated by the `,` character.
+  - Error: Missing object key-value pair
+  - Error: Missing object terminator
 - `keyValuePair`: A pair of tokend separated by a `:` character. The key is expected to be a string.
+  - Error: Missing key-value separator
+  - Error: Missing property value
 - `numberParser`: A composition of an `integer` followed by optional `fraction` and/or `exponent` tokens.
 - `integerParser`: Matches an optional minus sign followed by either a zero or an non-zero followed by an option number of digits.
 - `fractionParser`: Matches a decimal point (period) followed by one or more digits.
+  - Error: Missing fractional digit
 - `exponentParser`: Matches a exponent symbol (e or E) followed by one or more digits.
+  - Error: Missing exponent digit
 
 ### Combinators
 
@@ -47,11 +58,15 @@ All of the following functions expect a `State` object as input, and provide an 
 - `optional` specialisation of the `repeat` function using default options - min:0 and max:Infinity.
 - `oneZero` specialisation of the `repeat` function using max:1 to expect no more than one occurance of a token.
 - `onePlus` specialisation of the `repeat` function using min:1 to expect at least one occurance of a token.
+- `consolidate`: Specialisation of the `combine` function that uses the `joinValues` function to combine individual characters into string/number tokens.
+- `compress`: Specialisation of the `combine` function that uses the default function to conbine the values or an array or key-value pairs of an object.
 
 #### Private
 
 - `combinator`: facilitates the processing of parsers in sequence and returns the `State` object if all of them match a token (`and`) or any one of them matches a token (`or`).
 - `repeat`: facilitates recuring matching of tokens given a specific parser, and configured with options.
+- `combine`:
+- `joinValues`: function used to combine string and number elements into a single token.
 
 ### Predicates
 
@@ -128,6 +143,29 @@ The **Number** token is a composite of up to three different sections: _Integer_
   error: '',
 }
 ```
+
+- `Parser`: is the primary functio of the module. It takes a predicate function and an `options` object with the following properties:
+
+```JS
+{
+  size: 1,
+  errorWhitespace: false,
+  ignoreWhitespace: true,
+}
+```
+
+It returns a function that accepts a `state` object and processes the next token.
+
+- `ParserWithWhitespace`: Specialisation of the `Parser` function with the `ignoreWhitespace` flag set to `false`, so it can be included in strings.
+- `ParserWithoutWhitespace`: Specialisation of the `Parser` function with the `errorWhitespace` flag set to `true`, so any spaces encountered with cause an error.
+
+- `inError`: A predicate for the `state` object having an error value.
+- `reportError`: Updates the `state` object to include an error message if the specified parser fails, and no previous error message has been recorded.
+- `EOI`: A predicate indicating if the text in the `state` object has been exhausted.
+- `readText`: returns the next candidate token text. By default this is a single character but can be multiple characters.
+- `advance`: pushes the index forward by the length of a toekn and updates the results array with the text of the token.
+- `prepareInput`: Takes a JSON string (`text`) cna processes it into a `state` object.
+- `consumeWhitespace`: Moves the index forward until the next character is not a space or whitespace or the End Of Input (EOI) is encountered.
 
 ## References
 
