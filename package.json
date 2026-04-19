@@ -2,19 +2,25 @@
   "name": "parser-combinators",
   "version": "1.0.0",
   "description": "An example of parser combinators applied to validating a JSON string",
-  "main": "parsers.js",
+  "directories": {
+    "test": "test"
+  },
   "type": "module",
   "scripts": {
     "test": "node --test",
     "watch": "node --test --watch",
-    "coverage": "c8 node --test",
+    "coverage": "c8 -x 'test' node --test",
     "coverage:ui": "http-server ./coverage -o lcov-report/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TracyGJG/parser-combinators.git"
   },
   "keywords": [
     "JSON",
-    "parser",
-    "validator",
-    "combinators"
+    "Parser",
+    "Validator",
+    "Combinators"
   ],
   "author": "TGJ Gilmore",
   "license": "CC0-1.0",
@@ -30,5 +36,9 @@
       "lcov",
       "html"
     ]
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/TracyGJG/parser-combinators/issues"
+  },
+  "homepage": "https://github.com/TracyGJG/parser-combinators#readme"
 }

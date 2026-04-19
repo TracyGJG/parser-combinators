@@ -1,38 +1,49 @@
-const compoundParsing =
-  (method) =>
-  (...parsers) =>
-  (state) => {
-    const index = state.index;
-    if (
-      parsers[method]((parser) => {
-        const result = parser(state);
-        state.isMatched = true;
-        return result;
-      })
-    ) {
-      return true;
-    }
-    state.index = index;
-    state.isMatched = true;
-    return false;
-  };
+import { EOI, reportError, inError, prepareInput } from './utils.js';
 
-export const sequence = compoundParsing('every');
+// COMBINATORS
+function combinator(method) {
+  return (...parsers) =>
+    (state) =>
+      parsers[method]((parser) => parser(state)) && state;
+}
+export function or(...parsers) {
+  return combinator('some')(...parsers);
+}
+export function and(...parsers) {
+  return combinator('every')(...parsers);
+}
 
-export const preference = compoundParsing('some');
-
-export function occurance(parser, options = {}) {
-  const { min = 0, max = 0 } = options;
-  return (state) => {
+function repeat(options = {}) {
+  const { min, max } = { min: 0, max: Infinity, ...options };
+  return (parser) => (state) => {
     let occ = 0;
-    let index = state.index;
-    while (parser(state)) {
-      index = state.index;
-      occ++;
-      if (max && occ === max) break;
+    while (!EOI(state) && parser(state)) {
+      if (++occ === max) break;
     }
-    state.index = index;
-    state.isMatched = true;
-    return !min || occ >= min;
+    return (!min || occ >= min) && state;
   };
 }
+export const optional = repeat();
+export const oneZero = repeat({ max: 1 });
+export const onePlus = repeat({ min: 1 });
+
+function combine(combiner = (_) => _) {
+  return (...parsers) =>
+    (state) => {
+      if (inError(state)) return state;
+      const newState = prepareInput(state.text.slice(state.index));
+      const result = and(...parsers)(newState);
+      if (!result) return result;
+
+      if (newState.results.length) {
+        state.index += newState.index;
+        state.results.push(combiner(newState.results));
+      }
+      state.error = newState.error;
+      return state;
+    };
+}
+const joinValues = (arr) => arr.join('');
+
+export const consolidate = combine(joinValues);
+export const compress = combine();

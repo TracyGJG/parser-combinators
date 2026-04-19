@@ -1,18 +1,42 @@
 import {
-  // Base
+  Parser,
+  ParserWithWhitespace,
+  ParserWithoutWhitespace,
+  EOI,
+  readText,
+  prepareInput,
+  advance,
+  consumeWhitespace,
+  reportError,
+} from './utils.js';
+import {
+  or,
+  and,
+  optional,
+  oneZero,
+  onePlus,
+  consolidate,
+  compress,
+} from './combinators.js';
+import {
   isBooleanTrue,
   isBooleanFalse,
   isNullValue,
-  // Array
+  //
+  isStringDelim,
+  isEscaped,
+  isPrintableChar,
+  isUnicode,
+  //
   isArrayStart,
   isArrayEnd,
   isArraySeparator,
-  // Object
+  //
   isObjectStart,
   isObjectEnd,
   isObjectSeparator,
   isObjectKeyValSep,
-  // Number
+  //
   isMinusSign,
   isZero,
   isPositiveDigit,
@@ -20,95 +44,131 @@ import {
   isDecimalPoint,
   isExponentSign,
   isArithmeticSigns,
-  // String
-  isStringDelim,
-  isPrintableChar,
-  isEscaped,
-  isUnicode,
+  //
+  isSpace,
+  isWhitespace,
 } from './predicates.js';
 
-import { sequence, preference, occurance } from './combinators.js';
-import { parser } from './utils.js';
+// JSON PARSER
+const valueParser = or(
+  baseParser,
+  stringParser,
+  numberParser,
+  arrayParser,
+  objectParser,
+);
 
-export function value(state) {
-  return preference(array, object, string, base, number)(state);
-}
-
-export function array(state) {
-  const additionalValues = occurance(sequence(parser(isArraySeparator), value));
-  return sequence(
-    parser(isArrayStart),
-    occurance(sequence(value, additionalValues), {
-      max: 1,
-    }),
-    parser(isArrayEnd),
+function baseParser(state) {
+  return or(
+    Parser(isBooleanTrue, { size: 4 }),
+    Parser(isBooleanFalse, { size: 5 }),
+    Parser(isNullValue, { size: 4 }),
   )(state);
 }
 
-export function object(state) {
-  const keyValuePair = [string, parser(isObjectKeyValSep), value];
-  const additionalKeyValues = occurance(
-    sequence(parser(isObjectSeparator), ...keyValuePair),
-  );
-  return sequence(
-    parser(isObjectStart),
-    occurance(sequence(...keyValuePair, additionalKeyValues), {
-      max: 1,
-    }),
-    parser(isObjectEnd),
+function stringParser(state) {
+  return consolidate(
+    Parser(isStringDelim),
+    optional(
+      or(
+        ParserWithWhitespace(isUnicode),
+        ParserWithWhitespace(isEscaped, { size: 2 }),
+        ParserWithWhitespace(isPrintableChar),
+      ),
+    ),
+    reportError('Missing string terminator', Parser(isStringDelim)),
   )(state);
 }
 
-export function number(state) {
-  return sequence(
-    integer,
-    occurance(fraction, { max: 1 }),
-    occurance(exponent, { max: 1 }),
+function arrayParser(state) {
+  return compress(
+    Parser(isArrayStart),
+    oneZero(
+      and(
+        valueParser,
+        optional(
+          and(
+            Parser(isArraySeparator),
+            reportError('Missing array value', valueParser),
+          ),
+        ),
+      ),
+    ),
+    reportError('Missing array terminator', Parser(isArrayEnd)),
   )(state);
 }
-function integer(state) {
-  return sequence(
-    occurance(parser(isMinusSign), { max: 1 }),
-    preference(
-      occurance(parser(isZero), { min: 1 }),
-      preference(
-        occurance(parser(isPositiveDigit), { min: 1 }),
-        occurance(parser(isSingleDigit)),
+
+function objectParser(state) {
+  return compress(
+    Parser(isObjectStart),
+    oneZero(
+      and(
+        keyValuePair,
+        optional(
+          and(
+            Parser(isObjectSeparator),
+            reportError('Missing object key-value pair', keyValuePair),
+          ),
+        ),
+      ),
+    ),
+    reportError('Missing object terminator', Parser(isObjectEnd)),
+  )(state);
+}
+function keyValuePair(state) {
+  return and(
+    consumeWhitespace,
+    stringParser,
+    reportError('Missing key-value separator', Parser(isObjectKeyValSep)),
+    reportError('Missing property value', valueParser),
+  )(state);
+}
+
+function numberParser(state) {
+  return consolidate(
+    integerParser,
+    oneZero(fractionParser),
+    oneZero(exponentParser),
+  )(state);
+}
+function integerParser(state) {
+  return and(
+    oneZero(Parser(isMinusSign)),
+    or(
+      ParserWithoutWhitespace(isZero),
+      and(
+        ParserWithoutWhitespace(isPositiveDigit),
+        optional(ParserWithoutWhitespace(isSingleDigit)),
       ),
     ),
   )(state);
 }
-function fraction(state) {
-  return sequence(
-    parser(isDecimalPoint),
-    occurance(parser(isSingleDigit), { min: 1 }),
+function fractionParser(state) {
+  return and(
+    ParserWithoutWhitespace(isDecimalPoint),
+    reportError(
+      'Missing fractional digit',
+      onePlus(ParserWithoutWhitespace(isSingleDigit)),
+    ),
   )(state);
 }
-function exponent(state) {
-  return sequence(
-    parser(isExponentSign),
-    occurance(parser(isArithmeticSigns), { max: 1 }),
-    occurance(parser(isSingleDigit), { min: 1 }),
+function exponentParser(state) {
+  return and(
+    ParserWithoutWhitespace(isExponentSign),
+    oneZero(ParserWithoutWhitespace(isArithmeticSigns)),
+    reportError(
+      'Missing exponent digit',
+      onePlus(ParserWithoutWhitespace(isSingleDigit)),
+    ),
   )(state);
 }
 
-export function string(state) {
-  return sequence(
-    parser(isStringDelim),
-    occurance(
-      preference(
-        parser(isEscaped, { size: 2, stripWhitespace: false }),
-        parser(isPrintableChar, { stripWhitespace: false }),
-        parser(isUnicode, { size: 6, stripWhitespace: false }),
-      ),
-    ),
-    parser(isStringDelim),
+const jsonParser = (jsonText) => {
+  const state = prepareInput(jsonText);
+  and(
+    reportError('Unexpected lack of input', valueParser),
+    reportError('Unexpected end of input', EOI),
   )(state);
-}
-export function base(state) {
-  return preference(
-    parser(isBooleanTrue, { size: 4 }),
-    parser(isBooleanFalse, { size: 5 }),
-    parser(isNullValue, { size: 4 }),
-  )(state);
-}
+  return state.error || state.results?.[0];
+};
+export default jsonParser;

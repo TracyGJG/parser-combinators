@@ -1,116 +1,131 @@
-# JSON Parser (Validator)
+# Parser Combinators, applied to JSON parsing
 
-An example of parser combinators applied to processing a JSON string to validate it in accordance with the informal [specifciation](https://www.json.org/json-en.html). We might be conformant with the formal specificiations [ECMA-404](https://ecma-international.org/publications-and-standards/standards/ecma-404/) and [IETF RFC-7159](https://datatracker.ietf.org/doc/html/rfc7159.html), but that is not the purpose of this post.
+This project is an excerise in using the Functional Programming concept of Combinators to create parsers and combine them into a mechanism for processing a JSON string.
 
-There are six significant structures, any combination of which can comprise a valid JSON file/string. These include:
-
-- Whitespace: which is largely dismissed.
-- Number: which is a complicated little beasty when fractional and exponential factors are included.
-- String: is delimited with double-quotes `"` and can be a combination of printable and escaped characters.
-- Value: is potentially topped and tailed with whitespace around, Numbers, Strings, Objects, Arrays (these two to be described soon) and static values of `true`, `false` and `null`.
-- Arrays: are structures for containing zero to many, potentially duplicate Values (as defined above), which means they can be nested. They are delimited in square brackets `[]` and can contain whitespace or values with each value separated with a comma. Unlike in JS code, trailing commas are not supported and invalid.
-- Objects: are collections of any number of unique key (string), Value pairs. Similar to Arrays, they can also be nested. Objects are delimited with curly braces `{}` with each key-value pair separated with a comma. Again, trailing commas are invalid. All keys are double-quoted string separated from the value with a colon and optional whitespace.
-
-  In addition to parsing the above structures there are also some common pattens we can parse, which includes:
-  - Leading digits (1-9)
-  - Digits (0-9)
-  - Non-printable charactes (tabs, line-feed, carriage-return and spaces).
-  - Printable characters (ASCII values excluding `"`, `\` and control codepoint in the decimal range 0 to 32 and 127).
-  - Escape sequences (`\\`, `\"`, `\/`, `\b`, `\f`, `\n`, `\r`, `\t`).
-  - Unicode sequences (`\u####`, where # is a hexadecimal digit).
-
-The vast potential combination of the above, especially, when including nested arrays and object, makes linear processing less practical and assuming a tree structure is more efficient.
-
-"In Computer Science trees grow upside down", with the root at the top, leading to a trunck with branches that terminate in leaves (at the bottom - of course, where else would they be?). The analogy breaks down when you consider the possibility there could be multiple truncks but (between friends) let's not worry ourselves too much about those.
-
-For many JS developers the tendency is to use arrow functions in preference to their more tradition counterparts. However, we need to resolve some cyclic references which requires the construction of a symbol lookup table the JS engine will use to validate functions during their first parsing/execution. Arrow functions cannot be referenced before they have been initialised reducign their utility.
+## Modules and dependencies
 
 ```mermaid
 flowchart LR
+
+  Combinators --> Utils
+
   Parsers --> Utils
   Parsers --> Combinators
   Parsers --> Predicates
+
   Utils --> Predicates
+
 ```
 
-## I promise not to use RegExp
+### Pasers
 
-As a developer of many years, well versed in Regular Expressions for parsing data, there will be a strong temptation to call on the power of RegExp to perform low-level pattern matching. I will endevour to avoid RegExp as much as possible as this somewhat defeats the purpose of this post.
+#### Public
 
-## Testing
+- `jsonParser` is the primary parser that takes in a JSON string and returns either a `State` object when valid or `false` when invalid.
 
-We will prepare a test harness (Node JS code) that will load a manifest (JSON) file. The manifest catalogues a collection of valid and invalid JSON files that will also form part of the test environment.
+#### Private
 
-We will be confirming if the supplied test cases (JSON files) contain valid JSON or not, and if not where the error was found and its type. Our parser(s) will not be used to deserialise the JSON into JS data structures, just confirm compliance with the specification.
+All of the following functions expect a `State` object as input, and provide an updated `State` object or `false` as output. They are composed of `predicate` function conbine with `combinator` functions.
 
-## Some definitions
+- `valueParser`: After removing and premilinary whitespace (specifically space characters), this parser updates the `State` object if any of the following parsers match a token: `baseParser`, `stringParser`, `numberParser`, `arrayParser` or `objectParser`.
+- `baseParser`: Matches Boolean values or the Base value `null`.
+- `stringParser`: Matches any number of printable, escaped or unitcode characters delimited by the `"` character.
+- `arrayParser`: Matches any number of values delimited by the `[` and `]` characters and separated by the `,` character. Spaces between the delimiters will be retained.
+- `objectParser`: Matches any number of `key-value pairs` delimited by the `{` and `}` characters and separated by the `,` character.
+- `keyValuePair`: A pair of tokend separated by a `:` character. The key is expected to be a string.
+- `numberParser`: A composition of an `integer` followed by optional `fraction` and/or `exponent` tokens.
+- `integerParser`: Matches an optional minus sign followed by either a zero or an non-zero followed by an option number of digits.
+- `fractionParser`: Matches a decimal point (period) followed by one or more digits.
+- `exponentParser`: Matches a exponent symbol (e or E) followed by one or more digits.
 
-- `Partial Application` (AP): This is a function generated by (returned from calling) another function. This is usually employed to supply some initial arguments to the execution context of the AP.
-- `Pure`: describes a function that only operates on the parameters it defines and nothing outside its execution context. Consequently, it exhibits `referential transparency` and can be trusted to always return the same output for the same given input (arguments).
-- `Predicate` is a function that always returns a Boolean result (true or false) for a given input.
-- `Parser`, a function that attempts to match the input against a predefined pattern in order to attribute a token and therefore semantic meaning. When the input is not recognised an error will be produced it the pattern was expected or nothing may be reported if the pattern is optional.
-- `Parser Combinator` accepts one or more parsers as input and produces as new parser. Combinators are used to construct compound parsers to capture the complexity of inter-dependent parsers. For instance when one parser is only valid when followed by another. This enables the basic parsers to remain simple yet have the ability to parse complicates input. Examples include (informal):
-  - `Sequence` operation than takes in a list of parsers and returns a function that accepts a state object containing the input text. The function passes the input to each in turn until either the last is performed or an error occurs.
-  - `Preference` operation than takes in a list of parsers and returns a function that accepts a state object containing the input text. The function passes the input to each in turn until either the last is performed or a parser passes.
-  - `Occurance` is supplied with a single parser along with optional minimum and maximum occurance limits. It return a function that accepts a state object and executes the parser serveral times until either the input is excausted, the parser fails or the maximum limit is reached, if given.
+### Combinators
+
+#### Public
+
+- `or` processes a list of parsers returning an updated `State` object if any of them match a token.
+- `and` processes a list of parsers returning an updated `State` object only if all of them match a token.
+- `optional` specialisation of the `repeat` function using default options - min:0 and max:Infinity.
+- `oneZero` specialisation of the `repeat` function using max:1 to expect no more than one occurance of a token.
+- `onePlus` specialisation of the `repeat` function using min:1 to expect at least one occurance of a token.
+
+#### Private
+
+- `combinator`: facilitates the processing of parsers in sequence and returns the `State` object if all of them match a token (`and`) or any one of them matches a token (`or`).
+- `repeat`: facilitates recuring matching of tokens given a specific parser, and configured with options.
 
 ### Predicates
 
-Predicate functions (for our purpose) take in a single character and return a Boolean confirming the character is included in a specific set, as follows:
+#### Private constants
 
-- **Alphanumeric**: Letters `A-Z` (in upper and lower case) plus digitis `0-9`.
-- **Digits**: Characters 0-9. There two forms used for JSON parsing `0-9` and `1-9`.
-- **Hexadecimal**: tests for character in the following ranges:
-  - numeric `0-9`
-  - lowercase letters `a-f`
-  - uppercase letters `A-F`
+- **ESCAPED_CHARACTERS** An array containg: `'\\\"'`, `'\\\\'`, `'\\/'`, `'\\b'`, `'\\f'`, `'\\n'`, `'\\r'`, `'\\t'`.
+- **FIRST_UNICODE_CHAR**: `0x0080`
 
-- **EscapeChar**: Special character that can be included within a string value when preceeded by a back-slash (revese solidus). This includes:
-  - quotation mark `\"`
-  - revese solidus `\\`
-  - solidus `\/`
-  - backspace `\b`
-  - formfeed `\f`
-  - linefeed `\n`
-  - carriage return `\r`
-  - horizontal tab `\t`
-  - unicode (see the unicode character predicate)
+#### Public functions
 
-- **NonPrintable**: Characters that cannot be included in a string value. These include:
-  - Characters with an ASCII code below 32 (Control Characaters excluding space).
-  - Character with the ASCII code of 127 (Delete character).
-  - String delimeter/ Quotation mark `"`.
-  - Escape character `\`.
+- `matchText` is used to generate the predicates functions but only public for testing purposes.
 
-- **UnicodeChar**: This predicate function is slightly different from the others in that is expects a string of at least 6 characaters, as follows, in order.
-  - back-slash `\`
-  - letter `u` (always lowercase)
-  - 4 hexadecimal characters (see the isHexadecimal helper function)
+**Base Values**
 
-- **Whitespace**: Padding characters that are ignored by the JSON parsing process.
-  - space ` `
-  - backspace `\b`
-  - linefeed `\n`
-  - carriage return `\r`
-  - horizontal tab `\t`
+- `isBooleanTrue`: returns true if the input token is the Boolean `true` value.
+- `isBooleanFalse`: returns true if the input token is the Boolean `false` value.
+- `isNullValue`: returns true if the input token is the Base value `null`.
 
-The above predicates are supported by the following helper function:
+**String**
 
-- **isChar** is used by all the predicate functions. It is initialised with a pattern of characters that defined the matching set and returns a new function (for partial application). Subsequent calls are used to confirm is a single character is included in the group.
+- `isStringDelim`: returns true only if the input token is a string delimiter character `"`.
+- `isEscapePrefix`: (private) returns true only if the input token is an escape prefix character `\`.
+- `isControlChar`: (private) returns true only if the input token has an ASCII code less than 32 or equal to 127.
+- `isPrintableChar`: returns true only if the input token is not a control character, string delimiter or escape prefix.
+- `isEscaped`: returns true only if the input token is in the **ESCAPED_CHARACTERS** set.
+- `isUnicode`: returns true only if the input token is a code pointe greater that **FIRST_UNICODE_CHAR**.
 
-### Parsers
+**Number**
+The **Number** token is a composite of up to three different sections: _Integer_, _Fraction_ and _Exponent_.
 
-### Parser Combinators
+**Integer**
 
-## Execution context (State Model)
+- `isMinusSign`: returns true only if the input token is a minus sign `-`.
+- `isZero`: returns true only if the input token is the digit `0`.
+- `isPositiveDigit`: returns true only if the input token is a digit in the range `1..9`.
+- `isSingleDigit`: returns true only if the input token is a digit in the range `0..9`.
 
-The function returned by calling `Run` is the only one that is directly supplied with the source data. From then on in will be passed between parses as part of a State Model. Within the State Model there will also be an index into the source data where processing is to be performed. When an error is detected a suitable message will be recorded within the State Model. This means the State Model looks as follows.
+**Fraction**
 
-```js
+- `isDecimalPoint`: returns true only if the input token is a decimal point (period) character `.`.
+
+**Exponent**
+
+- `isDecimalPoint`: returns true only if the input token is an exponent symbol `e` or `E`.
+- `isArithmeticSigns`: returns true only if the input token is an arithmetic sign `+` or `-`.
+
+**Array**
+
+- `isArrayStart`: returns true only if the input token is a start array delimiter `[`.
+- `isArrayEnd`: returns true only if the input token is an end array delimiter `]`.
+- `isArraySeparator`: returns true only if the input token is an array value separation character `,`.
+
+**Object**
+
+- `isObjectStart`: returns true only if the input token is a start object delimiter `{`.
+- `isObjectEnd`: returns true only if the input token is an end object delimiter `}`.
+- `isObjectSeparator`: returns true only if the input token is an object property separation character `,`.
+- `isObjectKeyValSep`: returns true only if the input token is an object key/value pair separation character `:`.
+
+**Whitespace**
+
+- `isSpace`: returns true only if the input token is a literal space character.
+- `isWhitespace`: returnd true if the input token is any of the non-space whitespace chacarters `\n`, `\r` or `\t`.
+
+### Utils (all public)
+
+- `State` - Object factory function takes in a JSON string (text) and generates an object of the following structure;
+
+```JS
 {
-    text, // source data to be parsed.
-    index: 0, // position of processing.
-    isMatched: '', // error report when detected.
+  text,
+  index: 0,
+  results: [],
+  error: '',
 }
 ```
 

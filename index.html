@@ -4,70 +4,32 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Test Harness</title>
+    <link href="JSON-logo.svg" rel="icon" type="image/svg+xml" />
   </head>
   <body>
     <script type="module">
-      import {
-        matchText,
-        isArrayStart,
-        isArrayEnd,
-        isArraySeparator,
-      } from '../src/predicates.js';
-      import { parser } from '../src/utils.js';
-      import { sequence, preference, occurance } from '../src/combinators.js';
-      import { string } from '../src/parsers.js';
+      import packageJson from './test/package_.json' with { type: 'json' };
+      import testcases from './test/testcases.json' with { type: 'json' };
 
-      const arrSep = (state) => {
-        const result = parser(isArraySeparator)(state);
-        return result;
-      };
-      const additionalValuesOcc = (state) => {
-        return sequence(arrSep, value)(state);
-      };
-      const additionalValues = occurance(additionalValuesOcc);
+      import { reportError } from './src/utils.js';
 
-      console.table(
-        [
-          // '[]',
-          // '[""]',
-          // '"test"',
-          // ' "test" ',
-          // '["test"]',
-          // '["\\uABCD\n"]',
-          // '["test","test"]',
-          // '["test"," test"]',
-          // '["test","test" ]',
-          // '["test","test" ] ',
-          '["test", "test"]',
-          '["test", "test" ]',
-          '["test", "test"] ',
-          '["test", "test" ] ',
-        ].map((text) => {
-          const state = { text, index: 0, isMatched: true };
-          const result = value(state);
-          return { result, ...state };
-        }),
-      );
+      import jsonParser from './src/parsers.js';
 
-      function testArray(state) {
-        return sequence(
-          parser(isArrayStart),
-          occurance(sequence(value, additionalValues), {
-            max: 1,
-          }),
-          parser(isArrayEnd),
-          occurance(
-            parser((text) => {
-              console.log(`text: "${text}"`);
-              return matchText(' ')(text);
-            }),
-          ),
-        )(state);
+      const exercise = (inputData) =>
+        runTest(JSON.stringify(inputData, null, 2));
+
+      function runTest(jsonText) {
+        console.log(`\nTestcase: |${jsonText}|`);
+        console.log(jsonParser(jsonText));
       }
 
-      function value(state) {
-        return preference(testArray, string)(state);
-      }
+      // exercise(packageJson);
+      // exercise(testcases.fullDoc);
+      // testcases.valid.map(runTest);
+      // runTest('[ "Hello" ');
+      // runTest('{ "Hello": "World" ');
+      runTest('{ "Hello"; "World" ');
+      // runTest(' "Hello ');
     </script>
   </body>
 </html>

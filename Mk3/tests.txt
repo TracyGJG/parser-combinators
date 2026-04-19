@@ -1,3 +1,0 @@
-  "empty data": "",
-  "just whitespace": " \t\n\r ",
-  "value: true": "true",
