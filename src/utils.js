@@ -18,7 +18,7 @@ export const EOI = (state) => state.text.length <= state.index;
 export const readText = (state, length = 1) =>
   state.text.slice(state.index, state.index + length);
 export const advance = (state, length = 1) => {
-  const result = state.text.slice(state.index, state.index + length);
+  const result = readText(state, length);
   if (result?.length !== length) return '';
   state.results.push(result);
   state.index += length;
