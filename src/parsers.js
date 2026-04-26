@@ -76,7 +76,7 @@ function stringParser(state) {
         ParserWithWhitespace(isPrintableChar),
       ),
     ),
-    reportError('Missing string terminator', Parser(isStringDelim)),
+    reportError(Parser(isStringDelim), 'Missing string terminator'),
   )(state);
 }
 
@@ -89,12 +89,12 @@ function arrayParser(state) {
         optional(
           and(
             Parser(isArraySeparator),
-            reportError('Missing array value', valueParser),
+            reportError(valueParser, 'Missing array value'),
           ),
         ),
       ),
     ),
-    reportError('Missing array terminator', Parser(isArrayEnd)),
+    reportError(Parser(isArrayEnd), 'Missing array terminator'),
   )(state);
 }
 
@@ -107,20 +107,20 @@ function objectParser(state) {
         optional(
           and(
             Parser(isObjectSeparator),
-            reportError('Missing object key-value pair', keyValuePair),
+            reportError(keyValuePair, 'Missing object key-value pair'),
           ),
         ),
       ),
     ),
-    reportError('Missing object terminator', Parser(isObjectEnd)),
+    reportError(Parser(isObjectEnd), 'Missing object terminator'),
   )(state);
 }
 function keyValuePair(state) {
   return and(
     consumeWhitespace,
     stringParser,
-    reportError('Missing key-value separator', Parser(isObjectKeyValSep)),
-    reportError('Missing property value', valueParser),
+    reportError(Parser(isObjectKeyValSep), 'Missing key-value separator'),
+    reportError(valueParser, 'Missing property value'),
   )(state);
 }
 
@@ -147,8 +147,8 @@ function fractionParser(state) {
   return and(
     ParserWithoutWhitespace(isDecimalPoint),
     reportError(
-      'Missing fractional digit',
       onePlus(ParserWithoutWhitespace(isSingleDigit)),
+      'Missing fractional digit',
     ),
   )(state);
 }
@@ -157,8 +157,8 @@ function exponentParser(state) {
     ParserWithoutWhitespace(isExponentSign),
     oneZero(ParserWithoutWhitespace(isArithmeticSigns)),
     reportError(
-      'Missing exponent digit',
       onePlus(ParserWithoutWhitespace(isSingleDigit)),
+      'Missing exponent digit',
     ),
   )(state);
 }
@@ -166,8 +166,8 @@ function exponentParser(state) {
 const jsonParser = (jsonText) => {
   const state = prepareInput(jsonText);
   and(
-    reportError('Unexpected lack of input', valueParser),
-    reportError('Unexpected end of input', EOI),
+    reportError(valueParser, 'Unexpected lack of input'),
+    reportError(EOI, 'Unexpected end of input'),
   )(state);
   return state.error || state.results?.[0];
 };

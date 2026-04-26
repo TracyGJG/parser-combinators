@@ -37,34 +37,28 @@ describe('Utils', () => {
     });
     test('Report error when in error state (default)', () => {
       const state = State('TEST');
-      reportError('error', (_) => false)(state);
+      reportError((_) => false, 'error')(state);
       assert.equal(state.error, 'Error @0: error');
       assert.ok(inError(state));
     });
     test('Report error when in error state (override)', () => {
       const state = State('TEST');
       state.error = 'Error: DONE';
-      reportError('error', (_) => false)(state);
+      reportError((_) => false, 'error')(state);
       assert.equal(state.error, 'Error: DONE');
       assert.ok(inError(state));
     });
     test('Does not report error when not in error state (default)', () => {
       const state = State('TEST');
-      reportError('error', (_) => true)(state);
+      reportError((_) => true, 'error')(state);
       assert.equal(state.error, '');
       assert.ok(!inError(state));
     });
     test('Does not report error when not in error state (override)', () => {
       const state = State('TEST');
       state.error = 'Error: DONE';
-      reportError('error', (_) => true)(state);
+      reportError((_) => true, 'error')(state);
       assert.equal(state.error, 'Error: DONE');
-      assert.ok(inError(state));
-    });
-    test('Report error when no parser if given', () => {
-      const state = State('TEST');
-      reportError('error')(state);
-      assert.equal(state.error, 'Error @0: error');
       assert.ok(inError(state));
     });
   });

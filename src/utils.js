@@ -8,7 +8,7 @@ export const State = (text) => ({
   error: '',
 });
 export const inError = (State) => !!State.error;
-export const reportError = (errMsg, parser) => (state) => {
+export const reportError = (parser, errMsg) => (state) => {
   if (!parser?.(state)) {
     state.error ||= `Error @${state.index}: ${errMsg}`;
   }
